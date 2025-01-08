@@ -14,22 +14,27 @@ OUTPUT_FILE="benchmark_results_mpi_p2p_bloqueante.out"
 for nodes in "${nodes_array[@]}"; do
     for ntasks in "${ntasks_array[@]}"; do
         for n in "${n_sizes[@]}"; do
-            SLURM_NODELIST="nodes.$SLURM_JOB_ID"
-            srun -l hostname | sort -n | awk '{print $2}' > $SLURM_NODELIST
+            # Create machinefile dynamically with hostname info
+            MACHINEFILE="nodes.$SLURM_JOB_ID"
+            srun -l hostname | sort -n | awk '{print $2}' > $MACHINEFILE
 
+            # Update SLURM script for the new nodes and ntasks values
             sed -i "s/#SBATCH --nodes=[0-9]\+/#SBATCH --nodes=$nodes/" $SLURM_SCRIPT
             sed -i "s/#SBATCH --ntasks=[0-9]\+/#SBATCH --ntasks=$ntasks/" $SLURM_SCRIPT
 
+            # Print configuration info to output file
             echo "Running with Nodes: $nodes, NTASKS: $ntasks, N Size: $n" >> $OUTPUT_FILE
             echo "SLURM Job Node List: $SLURM_JOB_NODELIST" >> $OUTPUT_FILE
             echo "-----------------------------" >> $OUTPUT_FILE
 
+            # Run MPI program with appropriate arguments and log output
             mpirun -np $ntasks \
-                   -machinefile $SLURM_NODELIST \
+                   -machinefile $MACHINEFILE \
                    --mca btl ^openib \
                    --mca btl_tcp_if_include eno2 \
                    --bind-to none ./mpi_p2p_bloqueante $n >> $OUTPUT_FILE
                    
+            # Separator in output file
             echo "=============================" >> $OUTPUT_FILE
         done
     done

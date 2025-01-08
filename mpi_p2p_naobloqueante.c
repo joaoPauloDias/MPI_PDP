@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
     if (rank == 0)
     {
         t2 = MPI_Wtime();
+        printf("MPI P2P nao bloqueante\n");
         printf("Matrix size: %d\n", n);
         printf("Execution time: %.6f\n", t2 - t1);
         printf("Communication time: %.6f\n", comm_time);

@@ -6,8 +6,8 @@
 #SBATCH --error=%x_%j.err
 
 declare -a nodes_array=("2" "4" "8")  
-declare -a ntasks_array=("40" "80" "160")  
-declare -a n_sizes=("1024" "2048" "4096" "8192") 
+declare -a ntasks_array=("80" "160")  
+declare -a n_sizes=("512" "1024" "2048" "4096") 
 
 OUTPUT_FILE="benchmark_results_mpi_p2p_bloqueante.out"
 

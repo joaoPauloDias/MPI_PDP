@@ -33,12 +33,19 @@ int main(int argc, char *argv[])
     double *local_A = (double *)malloc((n * n / size) * sizeof(double));
     double *local_C = (double *)malloc((n * n / size) * sizeof(double));
 
-    double t1, t2;
+    double t1, t2, t_comm_start, t_comm_end, comm_time = 0.0;
     if (rank == 0)
         t1 = MPI_Wtime();
 
+    t_comm_start = MPI_Wtime();
     MPI_Scatter(A, n * n / size, MPI_DOUBLE, local_A, n * n / size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    t_comm_end = MPI_Wtime();
+    comm_time += t_comm_end - t_comm_start;
+
+    t_comm_start = MPI_Wtime();
     MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    t_comm_end = MPI_Wtime();
+    comm_time += t_comm_end - t_comm_start;
 
     for (int i = 0; i < n / size; i++)
     {
@@ -52,12 +59,17 @@ int main(int argc, char *argv[])
         }
     }
 
+    t_comm_start = MPI_Wtime();
     MPI_Gather(local_C, n * n / size, MPI_DOUBLE, C, n * n / size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    t_comm_end = MPI_Wtime();
+    comm_time += t_comm_end - t_comm_start;
 
     if (rank == 0)
     {
         t2 = MPI_Wtime();
+        printf("Matrix size: %d\n", n);
         printf("Execution time: %.6f\n", t2 - t1);
+        printf("Communication time: %.6f\n", comm_time);
     }
 
     free(A);

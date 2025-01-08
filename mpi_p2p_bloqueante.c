@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
         initialize_matrices(n, A, B, C);
     }
 
-    double t1, t2;
+    double t1, t2, t_comm_start, t_comm_end, comm_time = 0.0;
+
     if (rank == 0)
         t1 = MPI_Wtime();
 
@@ -41,19 +42,31 @@ int main(int argc, char *argv[])
     {
         for (int i = 1; i < size; i++)
         {
+            t_comm_start = MPI_Wtime();
             MPI_Send(A + i * (n * n / size), n * n / size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+            t_comm_end = MPI_Wtime();
+            comm_time += t_comm_end - t_comm_start;
         }
         for (int i = 0; i < n * n / size; i++)
         {
+            t_comm_start = MPI_Wtime();
             local_A[i] = A[i];
+            t_comm_end = MPI_Wtime();
+            comm_time += t_comm_end - t_comm_start;
         }
     }
     else
     {
+        t_comm_start = MPI_Wtime();
         MPI_Recv(local_A, n * n / size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        t_comm_end = MPI_Wtime();
+        comm_time += t_comm_end - t_comm_start;
     }
 
+    t_comm_start = MPI_Wtime();
     MPI_Bcast(B, n * n, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    t_comm_end = MPI_Wtime();
+    comm_time += t_comm_end - t_comm_start;
 
     for (int i = 0; i < n / size; i++)
     {
@@ -75,18 +88,26 @@ int main(int argc, char *argv[])
         }
         for (int i = 1; i < size; i++)
         {
+            t_comm_start = MPI_Wtime();
             MPI_Recv(C + i * (n * n / size), n * n / size, MPI_DOUBLE, i, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            t_comm_end = MPI_Wtime();
+            comm_time += t_comm_end - t_comm_start;
         }
     }
     else
     {
+        t_comm_start = MPI_Wtime();
         MPI_Send(local_C, n * n / size, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);
+        t_comm_end = MPI_Wtime();
+        comm_time += t_comm_end - t_comm_start;
     }
 
     if (rank == 0)
     {
         t2 = MPI_Wtime();
+        printf("Matrix size: %d\n", n);
         printf("Execution time: %.6f\n", t2 - t1);
+        printf("Communication time: %.6f\n", comm_time);
     }
 
     /*    if (rank == 0) {

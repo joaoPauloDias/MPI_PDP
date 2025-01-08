@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=mpi_coletiva
+#SBATCH --job-name=mpi_p2p_bloqueante
 #SBATCH --partition=hype
 #SBATCH --nodes=2
 #SBATCH --ntasks=40

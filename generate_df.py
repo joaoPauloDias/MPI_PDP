@@ -12,10 +12,16 @@ def parse_filename(filename):
 def parse_file_content(file_path):
     with open(file_path, 'r') as f:
         content = f.readlines()
+        
+        if len(content) < 4:
+            print(f"Warning: Skipping file {file_path} (not enough content).")
+            return None
+        
         comm_type = content[0].strip()
         matrix_size = int(content[1].split(":")[1].strip())
         execution_time = float(content[2].split(":")[1].strip())
         comm_time = float(content[3].split(":")[1].strip())
+    
     return comm_type, matrix_size, execution_time, comm_time
 
 def categorize_files(directory):
@@ -26,17 +32,19 @@ def categorize_files(directory):
             parsed_data = parse_filename(filename)
             if parsed_data:
                 file_path = os.path.join(directory, filename)
-                comm_type, matrix_size, execution_time, comm_time = parse_file_content(file_path)
+                parsed_content = parse_file_content(file_path)
+                if parsed_content:
+                    comm_type, matrix_size, execution_time, comm_time = parsed_content
 
-                data.append({
-                    'comm_type': parsed_data['comm_type'],
-                    'nodes': parsed_data['nodes'],
-                    'tasks': parsed_data['tasks'],
-                    'nsize': parsed_data['nsize'],
-                    'matrix_size': matrix_size,
-                    'execution_time': execution_time,
-                    'comm_time': comm_time
-                })
+                    data.append({
+                        'comm_type': parsed_data['comm_type'],
+                        'nodes': parsed_data['nodes'],
+                        'tasks': parsed_data['tasks'],
+                        'nsize': parsed_data['nsize'],
+                        'matrix_size': matrix_size,
+                        'execution_time': execution_time,
+                        'comm_time': comm_time
+                    })
     
     df = pd.DataFrame(data)
     return df

@@ -1,36 +1,18 @@
 #!/bin/bash
 #SBATCH --job-name=mpi_p2p_bloqueante
 #SBATCH --partition=hype
+#SBATCH --nodes=2
+#SBATCH --ntasks=40
 #SBATCH --time=2:00:00
 #SBATCH --output=%x_%j.out
 #SBATCH --error=%x_%j.err
 
-declare -a nodes_array=("2" "4" "8")  
-declare -a ntasks_array=("80" "160")  
-declare -a n_sizes=("512" "1024" "2048" "4096") 
+MACHINEFILE="nodes.$SLURM_JOB_ID"
+srun -l hostname | sort -n | awk '{print $2}' > $MACHINEFILE
 
-OUTPUT_FILE="benchmark_results_mpi_p2p_bloqueante.out"
-
-for nodes in "${nodes_array[@]}"; do
-    for ntasks in "${ntasks_array[@]}"; do
-        for n in "${n_sizes[@]}"; do
-            MACHINEFILE="nodes.$SLURM_JOB_ID"
-            srun -l hostname | sort -n | awk '{print $2}' > $MACHINEFILE
-
-            sed -i "s/#SBATCH --nodes=[0-9]\+/#SBATCH --nodes=$nodes/" $SLURM_SCRIPT
-            sed -i "s/#SBATCH --ntasks=[0-9]\+/#SBATCH --ntasks=$ntasks/" $SLURM_SCRIPT
-
-            echo "Running with Nodes: $nodes, NTASKS: $ntasks, N Size: $n" >> $OUTPUT_FILE
-            echo "SLURM Job Node List: $SLURM_JOB_NODELIST" >> $OUTPUT_FILE
-            echo "-----------------------------" >> $OUTPUT_FILE
-
-            mpirun -np $ntasks \
-                   -machinefile $MACHINEFILE \
-                   --mca btl ^openib \
-                   --mca btl_tcp_if_include eno2 \
-                   --bind-to none ./mpi_p2p_bloqueante $n >> $OUTPUT_FILE
-                   
-            echo "=============================" >> $OUTPUT_FILE
-        done
-    done
-done
+mpirun -np $SLURM_NTASKS \
+       -machinefile $MACHINEFILE \
+       --mca btl ^openib \
+       --mca btl_tcp_if_include eno2 \
+       --bind-to none -np $SLURM_NTASKS \
+       ./mpi_p2p_bloqueante 2048

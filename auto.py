@@ -2,7 +2,7 @@ import os
 import subprocess
 
 nodes_array = ["1"]
-ntasks_array = ["40", "80"]
+ntasks_array = ["80"]
 n_sizes = ["512", "1024", "2048", "4096"]
 file_names = ["mpi_coletiva", "mpi_p2p_bloqueante", "mpi_p2p_naobloqueante"]
 

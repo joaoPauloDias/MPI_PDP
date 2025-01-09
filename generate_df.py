@@ -41,7 +41,6 @@ def categorize_files(directory):
                         'nodes': parsed_data['nodes'],
                         'tasks': parsed_data['tasks'],
                         'nsize': parsed_data['nsize'],
-                        'matrix_size': matrix_size,
                         'execution_time': execution_time,
                         'comm_time': comm_time
                     })
